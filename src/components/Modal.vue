@@ -1,18 +1,22 @@
 <template>
 <transition name="fade">
     <div v-if="display">
-        <div class="modal fixed overscroll-include overflow-auto z-50 left-1/2 top-2/3 h-1/2 w-2/3 bg-indigo-100 rounded-lg shadow-md p-5 transition ease-in">
+        <div class="modal fixed overscroll-include overflow-auto z-50 left-1/2 top-2/3 h-1/2 w-1/2 bg-indigo-100 rounded-lg shadow-md p-5">
         <div @click="$emit('modalClose')" class="absolute right-3 top-2 cursor-pointer">x</div>
-        <textarea v-model="textData" @keyup="$emit('text', textData)" cols="30" rows="1"></textarea>
-           <div class="flex flex-col p-3 m-2 bg-indigo-700 text-white rounded-md uppercase" v-for="cluster in css" :key="cluster">
-             <p @click="toggleHidden" class="text-center cursor-pointer">{{cluster.name}}</p>
+        <textarea class="hidden" v-model="textData" @keyup="$emit('text', textData)" cols="30" rows="1"></textarea>
+
+
+          <div class="flex flex-row flex-wrap">
+          <div class="flex-grow" :class="{'w-full': isActive}" v-for="cluster in css" :key="cluster">
+           <div v-if="cluster.visible" class="p-3 m-2 bg-indigo-700 text-white rounded-md uppercase" >
+             <p @click.self="clickCluster(cluster)" class="text-center cursor-pointer">{{cluster.name}}</p>
             
-              <div class="hidden flex flex-wrap transition duration-500 ease-in-out">
-                <div class="flex-col flex-wrap p-3 m-2 bg-indigo-500 text-white rounded-md uppercase inline-block" v-for="attribute in cluster.attributes" :key="attribute">
-                  <p @click="toggleHidden" class="text-center w-full cursor-pointer">{{attribute.name}}</p>
+              <div :class="{ 'hidden': isHidden }" class="flex flex-wrap transition-all transform-gpu">
+                <div @mouseenter="toggleHidden" @mouseleave="toggleHidden" class="flex-col flex-wrap p-3 m-2 bg-indigo-500 text-white rounded-md uppercase inline-block" v-for="attribute in cluster.attributes" :key="attribute">
+                  <p  class="text-center w-full cursor-pointer">{{attribute.name}}</p>
 
                   <div class="hidden flex flex-wrap">
-                    <div class="flex-col flex-grow p-3 m-2 bg-indigo-300 text-white rounded-md uppercase inline-block" v-for="item in attribute.items" :key="item">
+                    <div @mouseenter="toggleHidden" @mouseleave="toggleHidden" class="flex-col flex-grow p-3 m-2 bg-indigo-300 text-white rounded-md uppercase inline-block" v-for="item in attribute.items" :key="item">
                       <p @click="toggleHidden" class="text-center w-full cursor-pointer">{{item.name}}</p>
 
                       <div class="hidden flex flex-wrap">
@@ -27,6 +31,9 @@
               </div>
 
            </div>
+          </div>
+          </div>
+
         </div>
     </div>
 </transition>
@@ -40,9 +47,48 @@ export default {
     setup(props) {
       const cssData = ref(props.options.css)
       const textData = ref('')
+      const isActive = ref(false)
+      const isHidden = ref(true)
+
+      const clickCluster = (val) => {
+        isActive.value = !isActive.value
+        isHidden.value = !isHidden.value
+        // Hides everything except target
+        for (let key in css.value) {
+          console.log(css.value[key].name)
+          if (css.value[key].name != val.name) {
+            css.value[key].visible = !css.value[key].visible
+            css.value[key].attributes.visible = !css.value[key].attributes.visible
+          }
+        }
+
+        // const parent = e.target.parentElement.parentElement
+        // const sibling = e.target.nextSibling
+        // if (parent.classList.contains("w-full")) {
+        //   parent.classList.remove("w-full")
+        // } else {
+        //   parent.classList.add("w-full")
+        // }
+
+        // if (sibling.classList.contains("hidden")) {
+        //   sibling.classList.remove("hidden")
+        // } else {
+        //   sibling.classList.add("hidden")
+        // }
+      }
 
       const toggleHidden = (e) => {
-        const sibling = e.target.nextSibling
+        const self = e.target
+        const sibling = e.target.lastChild
+        console.log(e.target)
+        if (self.classList.contains("w-full")) {
+          self.classList.remove("w-full")
+          self.classList.remove("order-first")
+        } else {
+          self.classList.add("w-full")
+          self.classList.add("order-first")
+        }
+
         if (sibling.classList.contains("hidden")) {
           sibling.classList.remove("hidden")
         } else {
@@ -53,6 +99,7 @@ export default {
       const css = ref({
         typography: {
           name: "typography",
+          visible: true,
           attributes: {
             size: {
               name: "font size",
@@ -84,6 +131,7 @@ export default {
         },
         spacing: {
           name: "spacing",
+          visible: true,
           attributes: {
             margin: {
               name: "margin",
@@ -113,6 +161,7 @@ export default {
         },
         sizing: {
           name: "sizing",
+          visible: true,
           attributes: {
             width: {
               name: "width",
@@ -148,6 +197,7 @@ export default {
         },
         backgrounds: {
           name: "backgrounds",
+          visible: true,
           attributes: {
             colors: {
               name: "colors",
@@ -178,6 +228,7 @@ export default {
         },
         borders: {
           name: "borders",
+          visible: true,
           attributes: {
             radius: {
               name: "radius",
@@ -193,7 +244,7 @@ export default {
         },
       })
 
-      return { cssData, css, textData, toggleHidden }
+      return { cssData, css, textData, toggleHidden, clickCluster, isActive, isHidden }
     }
 }
 </script>

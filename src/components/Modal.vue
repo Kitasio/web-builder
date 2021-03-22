@@ -1,23 +1,31 @@
 <template>
 <transition name="fade">
     <div v-if="display">
-        <div class="modal fixed overscroll-include overflow-auto z-50 left-1/2 top-2/3 h-64 w-2/3 bg-gray-100 rounded-lg shadow-md p-5 transition ease-in">
+        <div class="modal fixed overscroll-include overflow-auto z-50 left-1/2 top-2/3 h-1/2 w-2/3 bg-indigo-100 rounded-lg shadow-md p-5 transition ease-in">
         <div @click="$emit('modalClose')" class="absolute right-3 top-2 cursor-pointer">x</div>
         <textarea v-model="textData" @keyup="$emit('text', textData)" cols="30" rows="1"></textarea>
-           <div class="flex flex-col" v-for="cluster in css" :key="cluster">
-             <p>{{cluster.name}}</p>
+           <div class="flex flex-col p-3 m-2 bg-indigo-700 text-white rounded-md uppercase" v-for="cluster in css" :key="cluster">
+             <p @click="toggleHidden" class="text-center cursor-pointer">{{cluster.name}}</p>
+            
+              <div class="hidden flex flex-wrap transition duration-500 ease-in-out">
+                <div class="flex-col flex-wrap p-3 m-2 bg-indigo-500 text-white rounded-md uppercase inline-block" v-for="attribute in cluster.attributes" :key="attribute">
+                  <p @click="toggleHidden" class="text-center w-full cursor-pointer">{{attribute.name}}</p>
 
-             <div class="flex flex-col ml-10" v-for="attribute in cluster.attributes" :key="attribute">
-               <p>{{attribute.name}}</p>
+                  <div class="hidden flex flex-wrap">
+                    <div class="flex-col flex-grow p-3 m-2 bg-indigo-300 text-white rounded-md uppercase inline-block" v-for="item in attribute.items" :key="item">
+                      <p @click="toggleHidden" class="text-center w-full cursor-pointer">{{item.name}}</p>
 
-               <div class="flex" v-for="item in attribute.items" :key="item">
-                 <p @click="item.visible = !item.visible">{{item.name}}</p>
+                      <div class="hidden flex flex-wrap">
+                        <div class="flex-1 p-3 m-2 bg-indigo-200 text-white rounded-full uppercase inline-block cursor-pointer hover:bg-indigo-500" @mouseenter="$emit('css', clas)" v-for="clas in item.classes" :key="clas"></div>
+                      </div>
 
-                 <div @click="visible = !visible" v-for="clas in item.classes" :key="clas">
-                   <p v-if="item.visible" @mouseenter="$emit('css', clas)">{{ clas }}</p>
-                 </div>
-               </div>
-             </div>
+                    </div>
+                  </div>
+
+
+                </div>
+              </div>
+
            </div>
         </div>
     </div>
@@ -33,6 +41,15 @@ export default {
       const cssData = ref(props.options.css)
       const textData = ref('')
 
+      const toggleHidden = (e) => {
+        const sibling = e.target.nextSibling
+        if (sibling.classList.contains("hidden")) {
+          sibling.classList.remove("hidden")
+        } else {
+          sibling.classList.add("hidden")
+        }
+      }
+
       const css = ref({
         typography: {
           name: "typography",
@@ -44,10 +61,26 @@ export default {
                   name: "size",
                   visible: false,
                   classes: ["text-xs", "text-sm", "text-base", "text-lg", "text-xl", "text-2xl", "text-3xl", "text-4xl", "text-5xl", "text-6xl", "text-7xl", "text-8xl", "text-9xl"]
-                }
+                },
+                test: {
+                  name: "test"
+                },
+                test1: {
+                  name: "test"
+                },
+                test2: {
+                  name: "test"
+                },
+                test3: {
+                  name: "test"
+                },
               }
-            }
-          }
+            },
+            test: {name: 'test'},
+            test1: {name: 'test'},
+            test2: {name: 'test'},
+            test3: {name: 'test'},
+          },
         },
         spacing: {
           name: "spacing",
@@ -160,7 +193,7 @@ export default {
         },
       })
 
-      return { cssData, css, textData }
+      return { cssData, css, textData, toggleHidden }
     }
 }
 </script>

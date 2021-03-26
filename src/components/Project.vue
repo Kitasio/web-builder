@@ -1,27 +1,27 @@
 <template>
-  <Modal :display="displayModal" :options="currentOptions" @deleteClass="deleteClass" @css="emitFromModal" @cleanCss="cleanCss" @saveCss="saveCss" @modalClose="modalClose" @text="insertText"/>
+  <Modal :display="displayModal" :options="currentOptions" @inputClass="inputClass" @deleteClass="deleteClass" @css="emitFromModal" @cleanCss="cleanCss" @saveCss="saveCss" @modalClose="modalClose" @text="insertText"/>
   <div id="project" @mousemove="plusAppear" class="h-screen">
-      <div v-for="container in containers" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
+      <div v-for="container in containers" :key="container.id" @click.self="modal(container)" :id="container.id" :class="[container.css, { 'border border-1 border-dashed border-red-600': activeContainer(container), 'border-highlight': !activeContainer(container) }]" class="relative transition-all duration-300">
           <AddChild @click="addChild(container, 'bg-gray-200 h-auto')"/>
           <DeleteChild @click="deleteChild(container)"/>
-          <p v-if="container.text">{{ container.text }}</p>
+          <p @click.self="modal(container)" v-if="container.text">{{ container.text }}</p>
           <img v-else-if="container.img" :src="container.img" alt="">
 
-          <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
+          <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="[container.css, { 'border border-1 border-dashed border-red-600': activeContainer(container), 'border-highlight': !activeContainer(container) }]" class="relative transition-all duration-300">
                 <AddChild @click="addChild(container, 'bg-gray-300 h-auto')" />
                 <DeleteChild @click="deleteChild(container)"/>
-                <p v-if="container.text">{{ container.text }}</p> 
+                <p @click.self="modal(container)" v-if="container.text">{{ container.text }}</p> 
                 <img v-else-if="container.img" :src="container.img" alt="">
                 
-                <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
+                <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="[container.css, { 'border border-1 border-dashed border-red-600': activeContainer(container), 'border-highlight': !activeContainer(container) }]" class="relative transition-all duration-300">
                         <AddChild @click="addChild(container, 'bg-gray-400 h-auto')" />
                         <DeleteChild @click="deleteChild(container)"/>
-                        <p v-if="container.text">{{ container.text }}</p> 
+                        <p @click.self="modal(container)" v-if="container.text">{{ container.text }}</p> 
                         <img v-else-if="container.img" :src="container.img" alt="">
 
-                        <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
+                        <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="[container.css, { 'border border-1 border-dashed border-red-600': activeContainer(container), 'border-highlight': !activeContainer(container) }]" class="relative transition-all duration-300">
                                 <DeleteChild @click="deleteChild(container)"/>
-                                <p v-if="container.text">{{ container.text }}</p>
+                                <p @click.self="modal(container)" v-if="container.text">{{ container.text }}</p>
                                 <img v-else-if="container.img" :src="container.img" alt="">
 
                         </div>
@@ -55,7 +55,7 @@ export default {
         const containers = ref([])
         const displayModal = ref(false)
         const currentOptions = ref([])
-        const classSaved = ref(false)
+        const containerIsActive = ref(true)
 
 
         let val = 1
@@ -82,6 +82,12 @@ export default {
                     children: []
             })
             val += 1
+        }
+
+        const activeContainer = (container) => {
+            if (currentOptions) {
+                return currentOptions.value.id == container.id
+            }
         }
 
         const deleteChild = (container) => {
@@ -142,6 +148,12 @@ export default {
             }
         }
 
+        const inputClass = (value) => {
+            if (currentOptions.value.css) {
+                currentOptions.value.css += ' ' + value
+            }
+        }
+
 
         onUpdated(() => {
             if (currentOptions.value.css) {
@@ -175,6 +187,8 @@ export default {
             cleanCss,
             saveCss,
             deleteClass,
+            activeContainer,
+            inputClass,
         }
     },
 }

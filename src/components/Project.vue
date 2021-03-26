@@ -1,24 +1,28 @@
 <template>
-  <Modal :display="displayModal" :options="currentOptions" @css="emitFromModal" @modalClose="modalClose" @text="insertText"/>
+  <Modal :display="displayModal" :options="currentOptions" @deleteClass="deleteClass" @css="emitFromModal" @cleanCss="cleanCss" @saveCss="saveCss" @modalClose="modalClose" @text="insertText"/>
   <div id="project" @mousemove="plusAppear" class="h-screen">
       <div v-for="container in containers" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
           <AddChild @click="addChild(container, 'bg-gray-200 h-auto')"/>
           <DeleteChild @click="deleteChild(container)"/>
           <p v-if="container.text">{{ container.text }}</p>
+          <img v-else-if="container.img" :src="container.img" alt="">
 
           <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
                 <AddChild @click="addChild(container, 'bg-gray-300 h-auto')" />
                 <DeleteChild @click="deleteChild(container)"/>
                 <p v-if="container.text">{{ container.text }}</p> 
+                <img v-else-if="container.img" :src="container.img" alt="">
                 
                 <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
                         <AddChild @click="addChild(container, 'bg-gray-400 h-auto')" />
                         <DeleteChild @click="deleteChild(container)"/>
                         <p v-if="container.text">{{ container.text }}</p> 
+                        <img v-else-if="container.img" :src="container.img" alt="">
 
                         <div v-for="container in container.children" :key="container.id" @click.self="modal(container)" :id="container.id" :class="container.css" class="relative border-highlight">
                                 <DeleteChild @click="deleteChild(container)"/>
                                 <p v-if="container.text">{{ container.text }}</p>
+                                <img v-else-if="container.img" :src="container.img" alt="">
 
                         </div>
                 </div>
@@ -51,6 +55,7 @@ export default {
         const containers = ref([])
         const displayModal = ref(false)
         const currentOptions = ref([])
+        const classSaved = ref(false)
 
 
         let val = 1
@@ -60,6 +65,7 @@ export default {
                 {
                     id: val,
                     text: '',
+                    img: '',
                     css: 'flex h-40 bg-gray-100',
                     children: []
                 }
@@ -71,6 +77,7 @@ export default {
             container.children.push({
                     id: val,
                     text: '',
+                    img: '',
                     css: `flex m-5 w-full ${cssVal}`,
                     children: []
             })
@@ -98,23 +105,57 @@ export default {
         }
 
         const emitFromModal = (value) => {
-            if (currentOptions.value.css) {
-                const cssList = currentOptions.value.css.split(/[ ]+/)
-                const lastItemPrefix = cssList[cssList.length - 1].split(/[-]+/)[0]
-                const valuePrefix = value.split(/[-]+/)[0]
-                if (lastItemPrefix == valuePrefix) {
-                    cssList.pop()
-                    currentOptions.value.css = cssList.join(" ")
-                }
-                currentOptions.value.css += ' ' + value
+            if (currentOptions.value.css && !value.saved) {
+                currentOptions.value.css += ' ' + value.name
             }
         }
 
+        const cleanCss = (value) => {
+            if (currentOptions.value.css && !value.saved) {
+                const cssList = currentOptions.value.css.split(/[ ]+/)
+                cssList.forEach(() => {
+                    const index = cssList.indexOf(value.name)
+                    if (index > -1) {
+                        cssList.splice(index, 1)
+                        currentOptions.value.css = cssList.join(" ")
+                    }
+                })
+            }
+        }
+
+        const deleteClass = (value) => {
+            if (currentOptions.value.css) {
+                const cssList = currentOptions.value.css.split(/[ ]+/)
+                cssList.forEach(() => {
+                    const index = cssList.indexOf(value)
+                    if (index > -1) {
+                        cssList.splice(index, 1)
+                        currentOptions.value.css = cssList.join(" ")
+                    }
+                })
+            }
+        }
+
+        const saveCss = (value) => {
+            if (currentOptions.value.css) {
+                currentOptions.value.css += ' ' + value.name
+            }
+        }
+
+
         onUpdated(() => {
             if (currentOptions.value.css) {
-                const re = /(\w*-)(\w*-?\/?)(\w*-?)(?!.*\1)|(\w*(?!\w*-)(?<!-\w+))/g
+                const re = /(\w*-)(\w*-?\/?\.?)(\w*-?)(?!.*\1)|(\w*(?!\w*-)(?<!-\w+))/gm
                 const cssList = currentOptions.value.css.match(re)
                 let unique = [...new Set(cssList)]
+                unique.forEach((val) => {
+                    if (val.length < 2) {
+                        const index = unique.indexOf(val)
+                        if (index > -1) {
+                          unique.splice(index, 1)
+                        }
+                    }
+                })
                 currentOptions.value.css = unique.join(" ")
             }
         })
@@ -131,6 +172,9 @@ export default {
             emitFromModal,
             modalClose,
             insertText,
+            cleanCss,
+            saveCss,
+            deleteClass,
         }
     },
 }
